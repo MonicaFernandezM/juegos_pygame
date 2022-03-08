@@ -1,4 +1,6 @@
+from curses import BUTTON1_RELEASED
 import pygame as pg 
+import random
 pg.init()
 
 class Bola:
@@ -30,10 +32,43 @@ class Bola:
 class Game: 
     def __init__(self, ancho=600, alto=800): #generico los valor de ancho y alto 
         self.pantalla = pg.display.set_mode((ancho, alto))
-        self.bola = Bola(self.pantalla, ancho // 2, alto // 2, (255, 255, 0))
-        self.bola1 = Bola(self.pantalla, 350, 250, radio = 60)
-        self.bola1.vx = -1
-        self.bola1.vy = -3
+        self.bolas = [] #atributo
+        for i in range (random.randint(2,10)):
+            radio = random.randint(5, 50) #el radio de la bola
+            x = random.randint(radio, ancho - radio) #el 10 es maximo radio 
+            y = random.randint(radio, alto - radio)
+            color = (random.randint(0,255),
+                     random.randint(0,255),
+                     random.randint(0,255)
+                    )
+
+            bola = Bola(x, y, self.pantalla, color, radio)
+            bola.vx = random.randint(5,15) * random.choice([-1, 1]) 
+            bola.vy = random.randint(5,15) * random.choice([-1, 1]) 
+            self.bolas.append(bola)
+        """
+        for i in range (random.randint(2,10)):
+            radio = random.randint(5, 50)
+            self.bolas.append(Bola(random.randint(radio, ancho - radio),
+                                    random.randint(radio, alto - radio),
+                                    self.pantalla, 
+                                    (random.randint(0,255),
+                                     random.randint(0,255),
+                                     random.randint(0,255)),
+                                     radio))
+            self.bolas[i].vx = random.randint(5,15) * random.choice[(-1, 1)] 
+            self.bolas[i].vy = random.randint(5,15) * random.choice[(-1, 1)] 
+        """
+
+        """
+        for i ... randon de numero de bolas:
+            self.bolas.append(nueva_bola)
+
+            diferentes colores
+            diferentes tamaños 
+            diferentes velocidades
+        """
+
 
     def bucle_ppal(self): #su trabajo es montarme la pantalla en infinito
         game_over = False
@@ -42,14 +77,14 @@ class Game:
 
             eventos = pg.event.get()
             for evento in eventos:
-                if evento.type == pg.QUIT:``
+                if evento.type == pg.QUIT:
                     game_over =True 
 
-            self.bola.mover()
-            self.bola1.mover()
-            self.pantalla.fill((255, 0, 0))
-            self.bola.dibujar()
-            self.bola1.dibujar()
+            self.pantalla.fill((255, 0, 0)) #rellenar la pantalla.
+            
+            for bola in self.bolas:
+                bola.mover()
+                bola.dibujar()
 
             pg.display.flip()
 
