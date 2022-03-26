@@ -6,6 +6,14 @@ pg.init()
 FPS = 60
 
 
+niveles = [
+        [(0,0), (1,0), (2,0), (3,0), (4,0), (5,0), (6,0), (7,0), (8,0), (9,0),
+        (0,1), (9,1),
+        (0,2), (9,2),
+        (0,3), (1,3), (2,3), (3,3), (4,3), (5,3), (6,3), (7,3), (8,3), (9,3)],
+        [(0,0), (1,1), (2,2), (3,3)]
+            ]
+
 class Vigneta: #sacar una clase que saque los atributos necesarios que haga dibujos en la pantalla
     def __init__(self, padre, x, y, ancho, alto, color =(255, 255, 255)):
         self.padre = padre
@@ -26,18 +34,36 @@ class Vigneta: #sacar una clase que saque los atributos necesarios que haga dibu
         return self.y + self.alto // 2
 
     def intersecta(self, otro) -> bool:
-        return (self.x in range(otro.x, otro.x + otro.ancho) or \
-                self.x + self.ancho in range(otro.x, otro.x + otro.ancho)) and \
-               (self.y in range(otro.y, otro.y + otro.alto) or \
-                self.y + self.alto in range(otro.y, otro.y + otro.alto))
-        
+
+        if self.ancho > otro.ancho:
+            menor_ancho = otro
+            mayor_ancho = self
+        else:
+            menor_ancho = self
+            mayor_ancho = otro
+
+        if self.alto > otro.alto:
+            menor_alto = otro
+            mayor_alto = self
+        else:
+            menor_alto = self
+            mayor_alto = otro 
+        return (menor_ancho.x in range(mayor_ancho.x, mayor_ancho.x + mayor_ancho.ancho) or \
+                menor_ancho.x + menor_ancho.ancho in range(mayor_ancho.x, mayor_ancho.x + mayor_ancho.ancho)) and \
+               (menor_alto.y in range(mayor_alto.y, mayor_alto.y + mayor_alto.alto) or \
+                menor_alto.y + menor_alto.alto in range(mayor_alto.y, mayor_alto.y + mayor_alto.alto))
+    """
+    return (self.x in range(otro.x, otro.x + otro.ancho) or \
+            self.x + self.ancho in range(otro.x, otro.x + otro.ancho)) and
+            (self.y in range(otro.y, otro.y + otro.alto) or \
+            self.y + self.alto in range(otro.y, otro.y + otro.alto))            
+    """
 
     def dibujar(self):
         pass
 
     def mover(self):
         pass
-
 
 
 class Ladrillo(Vigneta):
@@ -51,7 +77,7 @@ class Ladrillo(Vigneta):
         pg.draw.rect(self.padre, self.color, (self.x, self.y, self.ancho, self.alto))    
 
     def comprobarToque(self, bola):
-        if self.intersecta(bola):
+        if self.intersecta(bola): #compruebo la condicion y me salgo eso es un if
             bola.vy *= -1
             return True
 
@@ -116,16 +142,13 @@ class Bola(Vigneta):
            self.vy *= -1
 
 
-
 class Game: 
     def __init__(self, ancho=600, alto=800): #generico los valor de ancho y alto 
         self.pantalla = pg.display.set_mode((ancho, alto))
         self.bola = Bola(self.pantalla, ancho // 20, alto // 2, radio = 10)
         self.raqueta = Raqueta(self.pantalla, ancho//2, alto - 30, 100, 20) #esta intanciada
         self.ladrillos = []
-        self.contador_vidas = 3
-        
-        self.crea_ladrillos()
+        self.contador_vidas = 3 
 
         self.reloj = pg.time.Clock()
         """
@@ -142,16 +165,27 @@ class Game:
             self.bolas[i].vy = random.randint(5,15) * random.choice[(-1, 1)] 
         """
 
-    def crea_ladrillos(self):
-        for col in range(10):
-            for fil in range(4):
+    def crea_ladrillos(self, nivel):
+        for col, fil in niveles[nivel]:
                 l = Ladrillo(self.pantalla, 5 + 60 * col, 25 + 30 * fil, 50, 20)
-                self.ladrillos.append(l)
+                self.ladrillos.append(l)            
 
     def bucle_ppal(self): #su trabajo es montarme la pantalla en infinito
         game_over = False
+        nivel = 0
+        self.crea_ladrillos(nivel)
 
-        while self.contador_vidas > 0 and not game_over:
+        while self.contador_vidas > 0 and not game_over: #me mantengo dentro del bucle
+        #Este if equivale a 
+        # and len(self.ladrillos) > 0
+        # puesto en la linea del while
+            if len(self.ladrillos) == 0:
+                nivel += 1
+                if nivel >= len(niveles):
+                    game_over = True
+                else: 
+                    self.crea_ladrillos(nivel)
+            
             self.reloj.tick(FPS)
 
             eventos = pg.event.get()
@@ -159,7 +193,7 @@ class Game:
                 if evento.type == pg.QUIT:
                     game_over =True 
                 """
-                if evento.type == pg.KEYDOWN:#para que se mueva la raqueta
+                if evento.type == pg.KEYDOWN: #para que se mueva la raqueta
                     if evento.key == pg.K_LEFT:
                         self.raqueta.vx = -5 
                     
